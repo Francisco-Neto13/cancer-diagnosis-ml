@@ -1,0 +1,8 @@
+# Utilize "pip install -r requirements.txt"
+
+pandas
+numpy
+scikit-learn
+joblib
+matplotlib
+tabulate

@@ -1,0 +1,84 @@
+============================================================
+ORDEM DE EXECUÇÃO E FUNÇÃO DE CADA ARQUIVO DO PROJETO
+============================================================
+
+Este documento descreve o fluxo de execução do projeto,
+explicando o papel de cada arquivo Python e como eles se
+conectam durante o processamento dos dados e criação dos
+modelos de classificação.
+
+============================================================
+1. preprocess.py (Não precisa ser executado pelo usuário. Apenas está aqui como explicação)
+============================================================
+Função principal:
+- Carregar o dataset original.
+- Tratar dados (remoção de valores faltantes, normalização,
+  codificação de variáveis categóricas usando OneHotEncoder
+  ou LabelEncoder).
+- Dividir o dataset em conjuntos de treino e teste.
+- Retornar X_train, X_test, y_train, y_test.
+
+============================================================
+2. train.py
+============================================================
+Função principal:
+- Receber X_train e y_train vindos do preprocess.py.
+- Treinar múltiplos modelos, tais como:
+    - LogisticRegression
+    - KNN
+    - SVC (RBF)
+    - RandomForest
+- Salvar os modelos treinados na pasta "models/"
+    (a pasta é criada automaticamente se ainda não existir).
+- Retornar métricas básicas de desempenho nos dados de treino.
+
+Este arquivo é o segundo passo da pipeline e depende dos
+dados pré-processados.
+
+============================================================
+3. evaluate.py
+============================================================
+Função principal:
+- Carregar os modelos treinados a partir da pasta "models/".
+- Avaliar cada modelo usando X_test e y_test.
+- Calcular métricas como:
+    - AUC
+    - Accuracy
+    - Matriz de confusão
+- Gerar gráficos como:
+    - Curvas ROC comparativas entre os modelos
+- Exibir ou salvar resultados das avaliações.
+
+Este arquivo é o último passo do processo, pois usa os
+modelos já treinados e compara seus desempenhos.
+
+============================================================
+FLUXO RESUMIDO DO PROJETO
+============================================================
+
+preprocess.py
+  -> prepara os dados (limpeza, codificação, normalização, splits)
+
+train.py
+  -> treina os modelos usando X_train, y_train
+  -> salva os modelos treinados em "models/"
+
+evaluate.py
+  -> carrega os modelos salvos
+  -> avalia o desempenho no conjunto de teste
+  -> gera gráficos e relatórios (como a curva ROC)
+
+============================================================
+Observações importantes
+============================================================
+
+- A pasta "models/" é gerada automaticamente pelo train.py
+  e não deve ser versionada no Git.
+
+- A pasta "__pycache__/" é gerada pelo Python e deve ser
+  ignorada pelo Git.
+
+- Os scripts são independentes mas seguem uma ordem lógica.
+  Só execute evaluate.py depois do train.py.
+
+============================================================
