@@ -5,22 +5,8 @@ from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
     confusion_matrix, roc_auc_score, roc_curve
 )
-import os
 import matplotlib.pyplot as plt
-
-
-def load_all_models(model_names, model_dir='models'): ## Essa função aqui carrega todos os modelos joblib do diretório
-    loaded_models = {}
-    print("\n## CARREGANDO MODELOS ##")
-    for name in model_names:
-        file_path = os.path.join(model_dir, f'{name}_model.joblib')
-        try:
-            loaded_models[name] = joblib.load(file_path)
-            print(f"Modelo {name} carregado com sucesso.")
-        except FileNotFoundError:
-            print(f"AVISO: Arquivo {file_path} nao encontrado. Pulando este modelo.")
-    return loaded_models
-
+from loader import load_all_models
 
 def evaluate_models(models, X_test, y_test): ## Essa função calcula as métricas de avaliação de cada modelo. X e Y contêm valores binários 
     results = []
