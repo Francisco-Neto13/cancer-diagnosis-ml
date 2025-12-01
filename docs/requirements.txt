@@ -5,5 +5,4 @@ numpy
 scikit-learn
 joblib
 matplotlib
-tabulate
 seaborn

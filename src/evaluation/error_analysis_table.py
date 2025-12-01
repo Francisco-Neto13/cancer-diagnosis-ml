@@ -3,20 +3,23 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-RESULTS_DIR = os.path.join(os.path.dirname(__file__), "..", "results")
-PRED_CSV = os.path.join(RESULTS_DIR, "predictions_table.csv")
+# Definição de Caminhos 
+RESULTS_DIR = "results"
+
+PRED_CSV = os.path.join(RESULTS_DIR, "predictions_table.csv") 
 ERRORS_CSV = os.path.join(RESULTS_DIR, "error_cases_by_model.csv")
 SUMMARY_CSV = os.path.join(RESULTS_DIR, "error_summary_by_model.csv")
 SUMMARY_PNG = os.path.join(RESULTS_DIR, "error_cases_summary.png")
 
+# Funções Auxiliares 
 
-def load_predictions(path):
+def load_predictions(path): # Carrega a tabela de previsões gerada na fase de análise.
     if not os.path.exists(path):
-        raise FileNotFoundError(f"Predictions file not found: {path}")
+        raise FileNotFoundError(f"Predictions file not found: {path}. Execute 'predict_and_visualize.py' antes.")
     return pd.read_csv(path)
 
 
-def compute_error_matrix(df):
+def compute_error_matrix(df): # Calcula o resumo de erros por modelo e gera uma tabela detalhada dos casos de erro.
     if "y_true" not in df.columns:
         raise KeyError("Coluna 'y_true' não encontrada em predictions_table.csv")
 
@@ -28,7 +31,7 @@ def compute_error_matrix(df):
         y_true = df["y_true"].values
         y_pred = df[col].values
 
-        # normalize types for comparison
+        # Garante que os tipos sejam inteiros para comparação binária
         try:
             y_true_cmp = y_true.astype(int)
             y_pred_cmp = y_pred.astype(int)
@@ -42,14 +45,14 @@ def compute_error_matrix(df):
         fn = int(((y_true_cmp == 1) & (y_pred_cmp == 0)).sum())
 
         summary.append({"model": model, "tp": tp, "tn": tn, "fp": fp, "fn": fn, "support": len(y_true)})
-        # collect error rows for this model
+        
+        # Coleta de casos de erro detalhados (FP e FN)
         sel = df.loc[y_true_cmp != y_pred_cmp].copy()
         if not sel.empty:
             sel["model"] = model
             sel["y_pred"] = sel[col]
             sel["error_type"] = np.where((sel["y_pred"] == 1) & (sel["y_true"] == 0), "FP",
                                          np.where((sel["y_pred"] == 0) & (sel["y_true"] == 1), "FN", "other"))
-            # keep sample index as id
             sel = sel.reset_index().rename(columns={"index": "sample_id"})
             error_rows.append(sel)
 
@@ -58,7 +61,7 @@ def compute_error_matrix(df):
     return summary_df, errors_df
 
 
-def plot_error_summary(summary_df, out_png):
+def plot_error_summary(summary_df, out_png): # Gera e salva o gráfico de barras empilhadas de FP vs FN.
     if summary_df.empty:
         print("Nenhum resumo de erros para plotar.")
         return
@@ -72,15 +75,16 @@ def plot_error_summary(summary_df, out_png):
     width = 0.6
 
     plt.figure(figsize=(max(6, len(models) * 1.2), 5))
-    p1 = plt.bar(x, fps, width, label="FP", color="#d9534f")
-    p2 = plt.bar(x, fns, width, bottom=fps, label="FN", color="#f0ad4e")
+
+    plt.bar(x, fps, width, label="FP", color="#d9534f")
+    plt.bar(x, fns, width, bottom=fps, label="FN", color="#f0ad4e")
 
     plt.xticks(x, models, rotation=45, ha="right")
     plt.ylabel("Número de erros")
     plt.title("Erros por modelo (FP empilhado sobre FN)")
     plt.legend()
-
-    # labels
+    
+    # Adiciona rótulos de contagem para cada seção da barra e o total
     for i in range(len(models)):
         total = fps[i] + fns[i]
         if fps[i] > 0:
@@ -95,29 +99,35 @@ def plot_error_summary(summary_df, out_png):
     print(f"Gráfico de erros salvo em: {out_png}")
 
 
-def main():
+# Função Principal de Execução 
+
+def run_error_analysis(): # Orquestra a análise de erros, salvando o resumo (CSV) e o gráfico (PNG).
+    print("\n## INICIANDO ANÁLISE DETALHADA DE ERROS (FP vs FN) ##")
     os.makedirs(RESULTS_DIR, exist_ok=True)
+    
     try:
-        df = load_predictions(PRED_CSV)
+        # Carrega a tabela de previsões de todos os modelos
+        df = load_predictions(PRED_CSV) 
     except FileNotFoundError as e:
         print(e)
-        print("Execute predict_and_visualize.py primeiro para gerar predictions_table.csv")
+        return
+    except KeyError as e:
+        print(f"ERRO: Falha na análise. {e}")
         return
 
     summary_df, errors_df = compute_error_matrix(df)
 
-    # salvar CSVs
+    # Salva o resumo (CSV) e os casos de erro detalhados (CSV)
     summary_df.to_csv(SUMMARY_CSV)
+    print(f"Resumo de erros (CSV) salvo em: {SUMMARY_CSV}")
+
     if not errors_df.empty:
         errors_df.to_csv(ERRORS_CSV, index=False)
-        print(f"Casos de erro salvos em: {ERRORS_CSV}")
+        print(f"Casos de erro detalhados (CSV) salvos em: {ERRORS_CSV}")
     else:
-        print("Nenhum caso de erro encontrado.")
-    print(f"Resumo de erros salvo em: {SUMMARY_CSV}")
+        print("Nenhum caso de erro encontrado para salvar.")
 
-    # plot PNG
+    # Gera e salva o gráfico resumo
     plot_error_summary(summary_df, SUMMARY_PNG)
-
-
-if __name__ == "__main__":
-    main()
+    
+    print("## ANÁLISE DE ERROS CONCLUÍDA ##")

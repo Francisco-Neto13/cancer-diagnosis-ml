@@ -5,4 +5,4 @@ https://numpy.org/doc/stable/
 https://scikit-learn.org/stable/
 https://joblib.readthedocs.io/en/stable/
 https://matplotlib.org/
-https://pypi.org/project/tabulate/
+https://seaborn.pydata.org/

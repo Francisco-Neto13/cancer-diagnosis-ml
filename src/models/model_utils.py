@@ -1,9 +1,9 @@
 import joblib
 import os
 
-def load_all_models(model_names, model_dir='models'): ## Essa função aqui carrega todos os modelos joblib do diretório
+def load_trained_models(model_names, model_dir='models'): #  Carrega todos os modelos joblib do diretório.
     loaded_models = {}
-    print("\n## CARREGANDO MODELOS ##")
+    print("\n## CARREGANDO MODELOS TREINADOS ##")
     for name in model_names:
         file_path = os.path.join(model_dir, f'{name}_model.joblib')
         try:

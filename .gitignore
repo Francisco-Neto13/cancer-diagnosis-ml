@@ -196,5 +196,5 @@ pyrightconfig.json
 
 
 # Extra 
-models/
-results/
+/models/
+/results/

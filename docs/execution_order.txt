@@ -1,84 +1,91 @@
-============================================================
-ORDEM DE EXECUÇÃO E FUNÇÃO DE CADA ARQUIVO DO PROJETO
-============================================================
-
 Este documento descreve o fluxo de execução do projeto,
 explicando o papel de cada arquivo Python e como eles se
-conectam durante o processamento dos dados e criação dos
-modelos de classificação.
+conectam. O arquivo central de controle é o main.py.
 
 ============================================================
-1. preprocess.py (Não precisa ser executado pelo usuário. Apenas está aqui como explicação)
+1. main.py (O Orquestrador)
 ============================================================
-Função principal:
-- Carregar o dataset original.
-- Tratar dados (remoção de valores faltantes, normalização,
-  codificação de variáveis categóricas usando OneHotEncoder
-  ou LabelEncoder).
-- Dividir o dataset em conjuntos de treino e teste.
-- Retornar X_train, X_test, y_train, y_test.
+Função: Ponto de entrada da pipeline. Configura o ambiente
+(cria as pastas 'models/' e 'results/') e encadeia a
+execução das fases de Dados, Treinamento, Avaliação e Análise.
 
 ============================================================
-2. train.py
-============================================================
-Função principal:
-- Receber X_train e y_train vindos do preprocess.py.
-- Treinar múltiplos modelos, tais como:
-    - LogisticRegression
-    - KNN
-    - SVC (RBF)
-    - RandomForest
-- Salvar os modelos treinados na pasta "models/"
-    (a pasta é criada automaticamente se ainda não existir).
-- Retornar métricas básicas de desempenho nos dados de treino.
-
-Este arquivo é o segundo passo da pipeline e depende dos
-dados pré-processados.
-
-============================================================
-3. evaluate.py
-============================================================
-Função principal:
-- Carregar os modelos treinados a partir da pasta "models/".
-- Avaliar cada modelo usando X_test e y_test.
-- Calcular métricas como:
-    - AUC
-    - Accuracy
-    - Matriz de confusão
-- Gerar gráficos como:
-    - Curvas ROC comparativas entre os modelos
-- Exibir ou salvar resultados das avaliações.
-
-Este arquivo é o último passo do processo, pois usa os
-modelos já treinados e compara seus desempenhos.
-
-============================================================
-FLUXO RESUMIDO DO PROJETO
+2. FASE DE DADOS E PRÉ-PROCESSAMENTO
 ============================================================
 
-preprocess.py
-  -> prepara os dados (limpeza, codificação, normalização, splits)
+2.1. loader.py
+Função: Carrega os dados brutos (CSV ou dataset nativo do scikit-learn).
 
-train.py
-  -> treina os modelos usando X_train, y_train
-  -> salva os modelos treinados em "models/"
+2.2. preprocess.py
+Função: Aplica transformações essenciais: remoção de colunas,
+codificação do target (B/M para 0/1), divisão treino/teste e
+padronização das features (StandardScaler).
+
+2.3. describe_dataset.py
+Função: Gera relatórios de Análise Exploratória (EDA).
+Ações: Calcula e salva estatísticas descritivas, matriz de
+correlação e gráficos de distribuição/histogramas (em results/).
+
+============================================================
+3. FASE DE MODELOS E TREINAMENTO
+============================================================
+
+3.1. model_hyperparameters.py
+Função: Define os modelos base (ex: LogisticRegression, KNN)
+e suas configurações iniciais, incluindo a grade de
+hiperparâmetros para otimização futura.
+
+3.2. train.py
+Função: Orquestra o treinamento.
+Ações: Carrega/pré-processa dados, treina os modelos definidos,
+e salva todos os artefatos de ML (modelos, scaler e test_data)
+na pasta 'models/'.
+
+3.3. model_utils.py
+Função: Utilitário para carregar modelos treinados ('*.joblib')
+do disco para as fases de avaliação e análise.
+
+============================================================
+4. FASE DE AVALIAÇÃO E ANÁLISE (RELATÓRIOS)
+============================================================
+
+4.1. evaluate.py
+Função: Avalia o desempenho dos modelos no conjunto de teste.
+Ações: Calcula métricas (F1, AUC, Accuracy), gera a Tabela
+Comparativa (CSV) e plota o gráfico de Curvas ROC comparativas.
+
+4.2. predict_and_visualize.py
+Função: Executa as previsões finais.
+Ações: Gera a tabela consolidada de previsões de todos os
+modelos ('predictions_table.csv'), necessária para a análise de erros.
+
+4.3. error_analysis_table.py
+Função: Detalha os tipos de erro.
+Ações: Calcula e salva o resumo de erros (FP vs FN) e os
+casos de erro detalhados, além de gerar o gráfico resumo.
+
+4.4. feature_importance.py
+Função: Analisa e visualiza a relevância das features
+para os modelos que suportam este cálculo.
+
+============================================================
+FLUXO RESUMIDO DO PROJETO (Ordem de Dependência)
+============================================================
+
+loader.py/preprocess.py -> train.py (cria modelos/)
+    -> describe_dataset.py (analisa test_data)
+
+train.py (modelos/ pronto)
+    -> evaluate.py (gera métricas e ROC)
 
 evaluate.py
-  -> carrega os modelos salvos
-  -> avalia o desempenho no conjunto de teste
-  -> gera gráficos e relatórios (como a curva ROC)
+    -> predict_and_visualize.py (gera predictions_table.csv)
+        -> error_analysis_table.py (analisa FP vs FN)
 
 ============================================================
 Observações importantes
 ============================================================
 
-- A pasta "models/" é gerada automaticamente pelo train.py
-  e não deve ser versionada no Git.
-
-- A pasta "__pycache__/" é gerada pelo Python e deve ser
-  ignorada pelo Git.
-
-- Os scripts são independentes mas seguem uma ordem lógica.
-  Só execute evaluate.py depois do train.py.
-
-============================================================
+- A pasta 'models/' armazena artefatos de ML.
+- A pasta 'results/' armazena relatórios (CSV/PNG).
+- Ambas as pastas devem ser ignoradas pelo Git.
