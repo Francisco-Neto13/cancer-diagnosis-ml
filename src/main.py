@@ -100,7 +100,7 @@ def main_pipeline(step="all"): # Orquestra o fluxo completo de ML com base no pa
         except Exception as e:
             print(f"ERRO na Análise: {e}")
             
-    print("\n================== ✅ PIPELINE CONCLUÍDA ✅ =====================")
+    print("\n==================  PIPELINE CONCLUÍDA  =====================")
 
 
 if __name__ == "__main__":
