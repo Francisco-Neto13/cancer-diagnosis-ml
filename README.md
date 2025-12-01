@@ -1,5 +1,7 @@
 # 🩺📊 Avaliação de Modelos de Aprendizado de Máquina Aplicados ao Diagnóstico de Câncer de Mama
 
+### 🧬📊 Pipeline Completa de Diagnóstico — Fluxo, Arquitetura e Funções dos Arquivos
+
 ## 👥 Participantes  
 - *Caio Gabriel Pereira de Menezes Correia*  
 - *Caio Renatos dos Santos Claudino*  
@@ -9,76 +11,168 @@
 ---
 
 ## 📖 Descrição Geral  
-Este repositório apresenta uma pipeline completa para análise, treinamento e avaliação de modelos de Machine Learning aplicados ao diagnóstico de câncer de mama.  
-O projeto é dividido em quatro partes principais: **preprocessamento**, **treinamento**, **avaliação dos modelos** e **apresentação dos resultados**.
+Este documento descreve o fluxo de execução do projeto, explicando o papel de cada arquivo Python e como eles se conectam.  
+O **arquivo central de controle é o `main.py`**, responsável por orquestrar toda a pipeline.
 
 ---
 
 # 📂 Ordem de Execução e Função de Cada Arquivo
 
-## 1️⃣ preprocess.py  
-*(Não precisa ser executado diretamente pelo usuário — incluído apenas para documentação.)*
-
-### 🔧 Funções principais:
-- Carregar o dataset original.  
-- Tratar dados (remoção de valores faltantes, normalização e codificação de variáveis categóricas).  
-- Realizar a divisão entre treino e teste.  
-- Retornar:  'X_train', 'X_test', 'y_train',y_test
+## 1️⃣ main.py — *Arquivo Principal*
+Função principal: ponto de entrada da pipeline.  
+Responsabilidades:
+- Configura o ambiente inicial.
+- Cria as pastas **`models/`** e **`results/`** caso não existam.
+- Encadeia a execução das fases:
+  - Dados
+  - Treinamento
+  - Avaliação
+  - Análise de erros
 
   ---
 
-## 2️⃣ train.py
+## 2️⃣ FASE DE DADOS E PRÉ-PROCESSAMENTO
 
-### 🔧 Função principal:
-- Receber `X_train` e `y_train` processados pelo `preprocess.py`.  
-- Treinar múltiplos modelos, como:  
-- Logistic Regression  
-- KNN  
-- SVC (RBF)  
-- Random Forest  
-- Salvar os modelos treinados na pasta `models/` (criada automaticamente).  
-- Retornar métricas básicas de desempenho nos dados de treinamento.
+### 2.1. loader.py
+**Função:**  
+Carrega os dados brutos, seja a partir de:
+- arquivos CSV
+- datasets nativos do *scikit-learn*
 
 ---
 
-## 3️⃣ evaluate.py
+## 2.2. preprocess.py
+**Função:**  
+Executa as transformações essenciais no dataset.
 
-### 🔧 Função principal:
-- Carregar os modelos treinados salvos em `models/`.  
-- Avaliar usando `X_test` e `y_test`.  
-- Gerar métricas como:  
-- AUC  
-- Accuracy  
-- Matriz de Confusão  
-- Criar visualizações, como:  
-- Curvas ROC comparativas  
-- Exibir ou salvar os resultados obtidos.
+**Ações realizadas:**
+- Remoção de colunas irrelevantes
+- Codificação do target (B/M → 0/1)
+- Divisão treinamento/teste
+- Padronização das features com **StandardScaler**
+
+---
+
+## 2.3. describe_dataset.py
+**Função:**  
+Realiza Análise Exploratória de Dados (EDA).
+
+**Ações:**
+- Gera estatísticas descritivas
+- Cria a matriz de correlação
+- Plota gráficos de distribuição e histogramas  
+➡️ Todos os resultados são salvos na pasta **`results/`**
+
+---
+
+## 3️⃣ FASE DE MODELOS E TREINAMENTO
+
+## 3.1. model_hyperparameters.py
+**Função:**  
+Define os modelos utilizados no experimento e seus hiperparâmetros.
+
+Inclui:
+- Modelos base (Ex: LogisticRegression, KNN)
+- Grades de hiperparâmetros para otimização futura
+
+---
+
+## 3.2. train.py
+**Função:**  
+Responsável por orquestrar todo o treinamento.
+
+**Ações:**
+- Carrega e pré-processa os dados
+- Treina todos os modelos definidos em `model_hyperparameters.py`
+- Salva os artefatos de ML:
+  - modelos treinados
+  - scaler
+  - test_data  
+➡️ Tudo salvo dentro da pasta **`models/`**
+
+---
+
+## 3.3. model_utils.py
+**Função:**  
+Funções utilitárias para carregar modelos treinados (`*.joblib`)  
+Usado nas fases de avaliação e análise.
+
+---
+
+# 4️⃣ FASE DE AVALIAÇÃO E ANÁLISE
+
+## 4.1. evaluate.py
+**Função:**  
+Avaliar o desempenho dos modelos no conjunto de teste.
+
+**Ações:**
+- Calcula métricas:
+  - F1-score
+  - AUC
+  - Accuracy
+- Gera uma tabela comparativa em CSV  
+- Plota a **Curva ROC comparativa** entre os modelos
+
+---
+
+## 4.2. predict_and_visualize.py
+**Função:**  
+Executa previsões finais de todos os modelos.
+
+**Ações:**
+- Cria a tabela consolidada:  
+  **`predictions_table.csv`**
+- Esta tabela é usada na análise de erros
+
+---
+
+## 4.3. error_analysis_table.py
+**Função:**  
+Gera a análise detalhada de erros (FP e FN).
+
+**Ações:**
+- Calcula resumo de falsos positivos e falsos negativos
+- Lista exemplos de erro
+- Cria gráficos de erro  
+➡️ Tudo salvo dentro de **`results/`**
+
+---
+
+## 4.4. feature_importance.py
+**Função:**  
+Analisa e visualiza a importância das features  
+(Apenas para modelos que suportam esse cálculo)
 
 ---
 
 # 🔄 Fluxo Resumido do Projeto
 
-preprocess.py
-→ limpa e prepara os dados (normalização, codificação, divisão)
+1. **loader.py**  
+   ⤷ Carrega os dados brutos
 
-train.py
-→ treina os modelos com X_train, y_train
-→ salva os modelos em "models/"
+2. **preprocess.py**  
+   ⤷ Limpa, padroniza e cria `X_train`, `X_test`, `y_train`, `y_test`
 
-evaluate.py
-→ carrega os modelos
-→ avalia com X_test, y_test
-→ gera as métricas e gráficos
+3. **train.py**  
+   ⤷ Treina os modelos e salva os artefatos em **models/**
+
+4. **describe_dataset.py**  
+   ⤷ Gera análise exploratória sobre o conjunto de teste
+
+5. **evaluate.py**  
+   ⤷ Calcula métricas (F1, AUC, Accuracy) e produz as curvas ROC
+
+6. **predict_and_visualize.py**  
+   ⤷ Gera `predictions_table.csv` com as previsões de todos os modelos
+
+7. **error_analysis_table.py**  
+   ⤷ Produz a análise de erros (FP vs FN) e gráficos consolidados
 
 ---
 
 # 📝 Observações Importantes
 
-- A pasta **`models/`** é gerada automaticamente e **não deve ser versionada no Git**.  
-- A pasta **`__pycache__/`** é criada automaticamente pelo Python e também deve ser ignorada.  
-- A ordem lógica de execução deve ser respeitada:  
-  1. `preprocess.py`  
-  2. `train.py`  
-  3. `evaluate.py`  
-
+- A pasta **`models/`** armazena artefatos de Machine Learning.  
+- A pasta **`results/`** armazena relatórios, tabelas e gráficos.  
+- **Ambas devem ser ignoradas no Git** (`.gitignore`).  
 ---
