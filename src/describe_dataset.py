@@ -64,7 +64,7 @@ def build_feature_stats(df):
 
 def plot_correlation(df, out_png):
     corr = df.corr()
-    plt.figure(figsize=(max(6, len(corr) * 0.3), max(6, len(corr) * 0.3)))
+    plt.figure(figsize=(max(6, len(corr) * 1), max(6, len(corr) * 1)))
     sns.heatmap(corr, annot=True, fmt=".2f", cmap="RdBu_r", center=0, square=False, cbar_kws={"shrink": .6})
     plt.title("Matriz de Correlação")
     plt.tight_layout()
